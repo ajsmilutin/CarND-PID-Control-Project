@@ -1,7 +1,71 @@
+
+[image1]: ./imgs/simulator.png
+[image2]: ./imgs/nosimulator.png
+[image3]: ./imgs/sampling_rate.png
+[image4]: ./imgs/pgainerr.png
+[image5]: ./imgs/psteer.png
+[image6]: ./imgs/pdgainerr.png
+[image7]: ./imgs/pdsteer.png
+[image8]: ./imgs/pidgainerr.png
+[image9]: ./imgs/pidsteer.png
+
 # CarND-Controls-PID
 Self-Driving Car Engineer Nanodegree Program
 
 ---
+
+# PID Control
+
+Before describing what I have done, I first have to express my discontent with the simulator. It locks up a gargantuan amount of resources just to run the simulator (see figures below). That creates a huge amount of trouble for people like me who do not have very powerful computer nor GPU. The problems multiple:
+
+1. When running the simulator I was unable to do any coding at all, even just the parameter tuning was very hard.
+2. The sampling rate was too high. In my case, it was ~100ms. That makes creating high-performance control algorithms very hard. The only solution is to slow down the car. 
+3. The sampling rate is highly inconsistent (see figure below). That makes the whole behavior of the control system unpredictable and erratic. 
+4. The simulator does not work on the second track! That fix would help build better and more robust controllers.
+
+I would prefer less fancy graphics, for higher and more consistent sampling rate. 
+
+| Simulator Running | No simulator | Sampling rate  |
+|-------------------|--------------|----------------|
+|![][image1]        | ![][image2]  |  ![][image3]   |
+
+
+
+## P gain
+
+P gain seemed to guide the car towards the center of the road. The problem with it was that the car was oscillating around the middle of the road all the time. If the P gain was too large the oscillations were increasing, leading to the car leaving the road. When I was setting the P gain, I have selected the biggest possible so that car makes the first turn. Larger ones would cause a car to leave the road before or at the first corner. Both the error and the control are very oscillatory. Here are the output and control signal:
+
+
+| CTE               | Steering angle  |
+|-------------------|-----------------|
+|![][image4]        | ![][image5]     |
+
+Video showing the response can be found [here.](./imgs/pgain.mp4)
+
+## D gain
+
+D gain is added to remove the oscillations of the car. When the D gain was too high, the car produces erratic movements and control signal jumped violently. When the D gain was too low, the car was still oscillating. So, the D gain was selected as a tradeoff between those two, the value that removes oscillations of the car without causing violent jumps of the control signal. Here are the output and control signal:
+
+
+| CTE               | Steering angle  |
+|-------------------|-----------------|
+|![][image6]        | ![][image7]     |
+
+Video showing the response can be found [here.](./imgs/pdgain.mp4)
+
+
+## I gain
+
+With only PD the car was always slightly to the side of the road. Also, in some of the corners, the car was slow to react. For that reason the I gain was added, in order to maintain cars position at the center of the road. The only problem was the right turn after two left turns when the I component has aggregated big amount. Here are the output and control signal:
+
+| CTE               | Steering angle  |
+|-------------------|-----------------|
+|![][image8]        | ![][image9]     |
+
+Video showing the response can be found [here.](./imgs/pidgain.mp4)
+
+## Conclusions
+The PID controller produced decent results when the turning radius was high. For the tight turns, the car went near the edge of the road. The problem is that car takes the only current state into consideration. We, humans, can anticipate future steering angles based on the configuration of the road, so similar mechanism should be incorporated in control system. 
 
 ## Dependencies
 
@@ -27,58 +91,4 @@ Self-Driving Car Engineer Nanodegree Program
 3. Compile: `cmake .. && make`
 4. Run it: `./pid`. 
 
-## Editor Settings
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
-
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
-
-## Code Style
-
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
-
-## Project Instructions and Rubric
-
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
-
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/e8235395-22dd-4b87-88e0-d108c5e5bbf4/concepts/6a4d8d42-6a04-4aa6-b284-1697c0fd6562)
-for instructions and the project rubric.
-
-## Hints!
-
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
-
-## Call for IDE Profiles Pull Requests
-
-Help your fellow students!
-
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
-
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
-
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
-
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
-
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
-
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
